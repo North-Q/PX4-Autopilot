@@ -103,6 +103,7 @@ void StickAccelerationXY::generateSetpoints(Vector2f stick_xy, const float yaw, 
 		_acceleration_setpoint = accel_setpoint_xy;
 
 	}
+
 	// Add drag to limit speed and brake again
 	Vector2f drag = calculateDrag(acceleration_scale.edivide(velocity_scale), dt, stick_xy, _velocity_setpoint);
 
