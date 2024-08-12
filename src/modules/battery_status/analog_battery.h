@@ -36,56 +36,61 @@
 #include <battery/battery.h>
 #include <parameters/param.h>
 
+// AnalogBattery 类继承自 Battery 类
 class AnalogBattery : public Battery
 {
 public:
+	// 构造函数
 	AnalogBattery(int index, ModuleParams *parent, const int sample_interval_us, const uint8_t source,
 		      const uint8_t priority);
 
 	/**
-	 * Update current battery status message.
+	 * 更新当前电池状态消息。
 	 *
-	 * @param voltage_raw Battery voltage read from ADC, volts
-	 * @param current_raw Voltage of current sense resistor, volts
-	 * @param timestamp Time at which the ADC was read (use hrt_absolute_time())
-	 * @param source The source as defined by param BAT%d_SOURCE
-	 * @param priority: The brick number -1. The term priority refers to the Vn connection on the LTC4417
+	 * @param voltage_raw 从 ADC 读取的电池电压，单位：伏特
+	 * @param current_raw 电流感应电阻的电压，单位：伏特
+	 * @param timestamp 读取 ADC 的时间（使用 hrt_absolute_time()）
+	 * @param source 参数 BAT%d_SOURCE 定义的来源
+	 * @param priority: 电池编号 -1。术语 priority 指的是 LTC4417 上的 Vn 连接
 	 */
 	void updateBatteryStatusADC(hrt_abstime timestamp, float voltage_raw, float current_raw);
 
 	/**
-	 * Whether the ADC channel for the voltage of this battery is valid.
-	 * Corresponds to BOARD_BRICK_VALID_LIST
+	 * 检查该电池的电压 ADC 通道是否有效。
+	 * 对应于 BOARD_BRICK_VALID_LIST
 	 */
 	bool is_valid();
 
 	/**
-	 * Which ADC channel is used for voltage reading of this battery
+	 * 获取用于读取该电池电压的 ADC 通道
 	 */
 	int get_voltage_channel();
 
 	/**
-	 * Which ADC channel is used for current reading of this battery
+	 * 获取用于读取该电池电流的 ADC 通道
 	 */
 	int get_current_channel();
 
 protected:
 
+	// 参数句柄结构体
 	struct {
-		param_t v_offs_cur;
-		param_t v_div;
-		param_t a_per_v;
-		param_t v_channel;
-		param_t i_channel;
+		param_t v_offs_cur; // 电压偏移电流参数句柄
+		param_t v_div;      // 电压分压参数句柄
+		param_t a_per_v;    // 每伏特安培数参数句柄
+		param_t v_channel;  // 电压通道参数句柄
+		param_t i_channel;  // 电流通道参数句柄
 	} _analog_param_handles;
 
+	// 参数值结构体
 	struct {
-		float v_offs_cur;
-		float v_div;
-		float a_per_v;
-		int32_t v_channel;
-		int32_t i_channel;
+		float v_offs_cur;   // 电压偏移电流参数值
+		float v_div;        // 电压分压参数值
+		float a_per_v;      // 每伏特安培数参数值
+		int32_t v_channel;  // 电压通道参数值
+		int32_t i_channel;  // 电流通道参数值
 	} _analog_params;
 
+	// 更新参数的虚函数
 	virtual void updateParams() override;
 };

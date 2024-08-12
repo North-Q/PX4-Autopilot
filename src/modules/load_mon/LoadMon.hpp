@@ -55,57 +55,64 @@
 namespace load_mon
 {
 
+// LoadMon 类继承自 ModuleBase、ModuleParams 和 px4::ScheduledWorkItem
 class LoadMon : public ModuleBase<LoadMon>, public ModuleParams, public px4::ScheduledWorkItem
 {
 public:
+	// 构造函数
 	LoadMon();
+	// 析构函数
 	~LoadMon() override;
 
+	// 任务生成函数
 	static int task_spawn(int argc, char *argv[]);
 
 	/** @see ModuleBase */
+	// 自定义命令处理函数
 	static int custom_command(int argc, char *argv[])
 	{
-		return print_usage("unknown command");
+		return print_usage("unknown command"); // 打印未知命令的使用说明
 	}
 
 	/** @see ModuleBase */
+	// 打印使用说明函数
 	static int print_usage(const char *reason = nullptr);
 
+	// 启动函数
 	void start();
 
 private:
-	/** Do a compute and schedule the next cycle. */
+	/** 执行计算并调度下一个周期。 */
 	void Run() override;
 
-	/** Do a calculation of the CPU load and publish it. */
+	/** 计算 CPU 负载并发布。 */
 	void cpuload();
 
-	/* Stack check only available on Nuttx */
+	/* 仅在 Nuttx 上可用的堆栈检查 */
 #if defined(__PX4_NUTTX)
-	/* Calculate stack usage */
+	/* 计算堆栈使用情况 */
 	void stack_usage();
 
-	int _stack_task_index{0};
+	int _stack_task_index{0}; // 堆栈任务索引
 
-	uORB::Publication<task_stack_info_s> _task_stack_info_pub{ORB_ID(task_stack_info)};
+	uORB::Publication<task_stack_info_s> _task_stack_info_pub{ORB_ID(task_stack_info)}; // 发布任务堆栈信息的 uORB 发布对象
 #endif
-	uORB::Publication<cpuload_s> _cpuload_pub {ORB_ID(cpuload)};
+	uORB::Publication<cpuload_s> _cpuload_pub {ORB_ID(cpuload)}; // 发布 CPU 负载信息的 uORB 发布对象
 
 #if defined(__PX4_LINUX)
-	FILE *_proc_fd = nullptr;
-	/* calculate usage directly from clock ticks on Linux */
-	clock_t _last_total_time_stamp{};
-	clock_t _last_spent_time_stamp{};
+	FILE *_proc_fd = nullptr; // 文件指针，用于读取 /proc 文件系统
+	/* 直接从 Linux 上的时钟周期计算使用情况 */
+	clock_t _last_total_time_stamp{}; // 上次总时间戳
+	clock_t _last_spent_time_stamp{}; // 上次消耗时间戳
 #elif defined(__PX4_NUTTX)
-	hrt_abstime _last_idle_time {0};
-	hrt_abstime _last_idle_time_sample{0};
+	hrt_abstime _last_idle_time {0}; // 上次空闲时间
+	hrt_abstime _last_idle_time_sample{0}; // 上次空闲时间采样
 #endif
 
-	perf_counter_t _cycle_perf{perf_alloc(PC_ELAPSED, MODULE_NAME": cycle")};
+	perf_counter_t _cycle_perf{perf_alloc(PC_ELAPSED, MODULE_NAME": cycle")}; // 性能计数器，用于测量周期时间
 
 	DEFINE_PARAMETERS(
-		(ParamBool<px4::params::SYS_STCK_EN>) _param_sys_stck_en
+		(ParamBool<px4::params::SYS_STCK_EN>) _param_sys_stck_en // 参数定义，是否启用堆栈检查
 	)
 };
 

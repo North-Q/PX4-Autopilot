@@ -1,0 +1,24 @@
+#ifndef PERIPHERALINCLUDES_H_
+#define PERIPHERALINCLUDES_H_
+
+#define IO_CUSTOM_ENABLE 1
+
+#if defined(MW_PX4_NUTTX_BUILD) 
+#define IO_STANDARD_ENABLE 1
+
+
+#if IO_STANDARD_ENABLE 
+#define IO_STANDARD_I2C 1
+#define IO_I2C_MODULES_MAX 4
+#define IO_STANDARD_SCI 1
+#define IO_SCI_MODULES_MAX 10
+#endif
+
+#endif
+
+#define MAX_PACKET_SIZE 450
+
+#define BOARD_IO_VERSION "24.1.0"
+
+#define CHECKSUM_ENABLE 1
+#endif

@@ -35,67 +35,82 @@
 #include <lib/battery/battery.h>
 #include "analog_battery.h"
 
-// Defaults to use if the parameters are not set
+// 如果没有设置参数，则使用默认值
 #if BOARD_NUMBER_BRICKS > 0
 #if defined(BOARD_BATT_V_LIST) && defined(BOARD_BATT_I_LIST)
-static constexpr int   DEFAULT_V_CHANNEL[BOARD_NUMBER_BRICKS] = BOARD_BATT_V_LIST;
-static constexpr int   DEFAULT_I_CHANNEL[BOARD_NUMBER_BRICKS] = BOARD_BATT_I_LIST;
+static constexpr int   DEFAULT_V_CHANNEL[BOARD_NUMBER_BRICKS] = BOARD_BATT_V_LIST; // 默认电压通道
+static constexpr int   DEFAULT_I_CHANNEL[BOARD_NUMBER_BRICKS] = BOARD_BATT_I_LIST; // 默认电流通道
 #else
 #error  "BOARD_BATT_V_LIST and BOARD_BATT_I_LIST need to be defined"
 #endif
 #else
-static constexpr int DEFAULT_V_CHANNEL[1] = {-1};
-static constexpr int DEFAULT_I_CHANNEL[1] = {-1};
+static constexpr int DEFAULT_V_CHANNEL[1] = {-1}; // 如果没有定义板载电池数量，则设置为 -1
+static constexpr int DEFAULT_I_CHANNEL[1] = {-1}; // 如果没有定义板载电池数量，则设置为 -1
 #endif
 
+// AnalogBattery 构造函数
 AnalogBattery::AnalogBattery(int index, ModuleParams *parent, const int sample_interval_us, const uint8_t source,
 			     const uint8_t priority) :
-	Battery(index, parent, sample_interval_us, source)
+	Battery(index, parent, sample_interval_us, source) // 调用基类 Battery 的构造函数
 {
-	Battery::setPriority(priority);
+	Battery::setPriority(priority); // 设置电池优先级
 	char param_name[17];
 
+	// 查找电压偏移电流参数
 	_analog_param_handles.v_offs_cur = param_find("BAT_V_OFFS_CURR");
 
+	// 查找电压分压参数
 	snprintf(param_name, sizeof(param_name), "BAT%d_V_DIV", index);
 	_analog_param_handles.v_div = param_find(param_name);
 
+	// 查找每伏特安培数参数
 	snprintf(param_name, sizeof(param_name), "BAT%d_A_PER_V", index);
 	_analog_param_handles.a_per_v = param_find(param_name);
 
+	// 查找电压通道参数
 	snprintf(param_name, sizeof(param_name), "BAT%d_V_CHANNEL", index);
 	_analog_param_handles.v_channel = param_find(param_name);
 
+	// 查找电流通道参数
 	snprintf(param_name, sizeof(param_name), "BAT%d_I_CHANNEL", index);
 	_analog_param_handles.i_channel = param_find(param_name);
 }
 
-void
-AnalogBattery::updateBatteryStatusADC(hrt_abstime timestamp, float voltage_raw, float current_raw)
+// 更新电池状态的 ADC 值
+void AnalogBattery::updateBatteryStatusADC(hrt_abstime timestamp, float voltage_raw, float current_raw)
 {
+	// 计算实际电压值
 	const float voltage_v = voltage_raw * _analog_params.v_div;
+	// 计算实际电流值
 	const float current_a = (current_raw - _analog_params.v_offs_cur) * _analog_params.a_per_v;
 
+	// 检查电池是否连接
 	const bool connected = voltage_v > BOARD_ADC_OPEN_CIRCUIT_V &&
 			       (BOARD_ADC_OPEN_CIRCUIT_V <= BOARD_VALID_UV || is_valid());
 
+	// 更新电池连接状态
 	Battery::setConnected(connected);
+	// 更新电池电压
 	Battery::updateVoltage(voltage_v);
+	// 更新电池电流
 	Battery::updateCurrent(current_a);
+	// 更新并发布电池状态
 	Battery::updateAndPublishBatteryStatus(timestamp);
 }
 
+// 检查电池电压 ADC 通道是否有效
 bool AnalogBattery::is_valid()
 {
 #ifdef BOARD_BRICK_VALID_LIST
 	bool valid[BOARD_NUMBER_BRICKS] = BOARD_BRICK_VALID_LIST;
 	return valid[_index - 1];
 #else
-	// TODO: Maybe return false instead?
+	// TODO: 也许应该返回 false？
 	return true;
 #endif
 }
 
+// 获取电压通道
 int AnalogBattery::get_voltage_channel()
 {
 	if (_analog_params.v_channel >= 0) {
@@ -106,6 +121,7 @@ int AnalogBattery::get_voltage_channel()
 	}
 }
 
+// 获取电流通道
 int AnalogBattery::get_current_channel()
 {
 	if (_analog_params.i_channel >= 0) {
@@ -116,14 +132,16 @@ int AnalogBattery::get_current_channel()
 	}
 }
 
-void
-AnalogBattery::updateParams()
+// 更新参数
+void AnalogBattery::updateParams()
 {
+	// 获取并更新参数值
 	param_get(_analog_param_handles.v_div, &_analog_params.v_div);
 	param_get(_analog_param_handles.a_per_v, &_analog_params.a_per_v);
 	param_get(_analog_param_handles.v_channel, &_analog_params.v_channel);
 	param_get(_analog_param_handles.i_channel, &_analog_params.i_channel);
 	param_get(_analog_param_handles.v_offs_cur, &_analog_params.v_offs_cur);
 
+	// 调用基类的更新参数方法
 	Battery::updateParams();
 }

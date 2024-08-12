@@ -122,8 +122,8 @@ public:
 	 * @brief main Main entry point to the module that should be
 	 *        called directly from the module's main method.
 	 * @param argc The task argument count.
-	 * @param argc Pointer to the task argument variable array.
-	 * @return Returns 0 iff successful, -1 otherwise.
+	 * @param argv Pointer to the task argument variable array.
+	 * @return Returns 0 if successful, -1 otherwise.
 	 */
 	static int main(int argc, char *argv[])
 	{

@@ -55,58 +55,84 @@
 namespace mag_bias_estimator
 {
 
+// MagBiasEstimator 类继承自 ModuleBase、ModuleParams 和 px4::ScheduledWorkItem
 class MagBiasEstimator : public ModuleBase<MagBiasEstimator>, public ModuleParams, public px4::ScheduledWorkItem
 {
 public:
+	// 构造函数
 	MagBiasEstimator();
+	// 析构函数
 	~MagBiasEstimator() override;
 
+	// 任务生成函数
 	static int task_spawn(int argc, char *argv[]);
 
 	/** @see ModuleBase */
+	// 自定义命令处理函数
 	static int custom_command(int argc, char *argv[])
 	{
-		return print_usage("unknown command");
+		return print_usage("unknown command"); // 打印未知命令的使用说明
 	}
 
 	/** @see ModuleBase */
+	// 打印使用说明函数
 	static int print_usage(const char *reason = nullptr);
 
 	/** @see ModuleBase::print_status() */
+	// 打印状态函数
 	int print_status() override;
 
+	// 启动函数
 	void start();
 
 private:
+	// 主运行函数，实际的工作逻辑在这里实现
 	void Run() override;
+	// 发布磁力计偏置估计值
 	void publishMagBiasEstimate();
 
+	// 最大传感器数量
 	static constexpr int MAX_SENSOR_COUNT = 4;
 
+	// 磁力计偏置估计器数组
 	FieldSensorBiasEstimator _bias_estimator[MAX_SENSOR_COUNT];
+	// 上次更新时间戳数组
 	hrt_abstime _timestamp_last_update[MAX_SENSOR_COUNT] {};
 
+	// 磁力计传感器订阅数组
 	uORB::SubscriptionMultiArray<sensor_mag_s, MAX_SENSOR_COUNT> _sensor_mag_subs{ORB_ID::sensor_mag};
+	// 参数更新订阅
 	uORB::Subscription _parameter_update_sub{ORB_ID(parameter_update)};
+	// 车辆角速度订阅
 	uORB::Subscription _vehicle_angular_velocity_sub{ORB_ID(vehicle_angular_velocity)};
+	// 车辆状态订阅
 	uORB::Subscription _vehicle_status_sub{ORB_ID(vehicle_status)};
 
+	// 磁力计偏置估计发布
 	uORB::Publication<magnetometer_bias_estimate_s> _magnetometer_bias_estimate_pub{ORB_ID(magnetometer_bias_estimate)};
 
+	// 磁力计校准数组
 	calibration::Magnetometer _calibration[MAX_SENSOR_COUNT];
 
+	// 有效时间数组
 	hrt_abstime _time_valid[MAX_SENSOR_COUNT] {};
 
+	// 重置场估计器标志数组
 	bool _reset_field_estimator[MAX_SENSOR_COUNT] {};
+	// 有效标志数组
 	bool _valid[MAX_SENSOR_COUNT] {};
 
+	// 武装状态
 	uint8_t _arming_state{0};
+	// 系统校准标志
 	bool _system_calibrating{false};
 
+	// 性能计数器，用于测量周期时间
 	perf_counter_t _cycle_perf{perf_alloc(PC_ELAPSED, MODULE_NAME": cycle")};
 
+	// 定义参数
 	DEFINE_PARAMETERS(
-		(ParamFloat<px4::params::MBE_LEARN_GAIN>) _param_mbe_learn_gain
+		(ParamFloat<px4::params::MBE_LEARN_GAIN>) _param_mbe_learn_gain // 学习增益参数
 	)
 };
 

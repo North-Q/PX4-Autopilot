@@ -456,7 +456,7 @@ bool MixingOutput::update()
 	}
 
 	if (!all_disabled) {
-		if (!_armed.armed && !_armed.manual_lockdown) {
+		if (!_armed.manual_lockdown) {
 			_actuator_test.overrideValues(outputs, _max_num_outputs);
 		}
 

@@ -46,33 +46,47 @@
 #include <uORB/topics/parameter_update.h>
 #include <battery/battery.h>
 
+
 using namespace time_literals;
 
+// EscBattery 类继承自 ModuleBase、ModuleParams 和 px4::WorkItem
 class EscBattery : public ModuleBase<EscBattery>, public ModuleParams, public px4::WorkItem
 {
 public:
+	// 构造函数
 	EscBattery();
+	// 默认析构函数
 	~EscBattery() = default;
 
 	/** @see ModuleBase */
+	// 任务生成函数
 	static int task_spawn(int argc, char *argv[]);
 
 	/** @see ModuleBase */
+	// 自定义命令处理函数
 	static int custom_command(int argc, char *argv[]);
 
 	/** @see ModuleBase */
+	// 打印使用说明函数
 	static int print_usage(const char *reason = nullptr);
 
+	// 初始化函数
 	bool init();
 
 private:
+	// 重载的 Run 函数，实际的工作逻辑在这里实现
 	void Run() override;
 
+	// 参数更新函数
 	void parameters_updated();
 
+	// 订阅参数更新的 uORB 订阅对象，订阅间隔为 1 秒
 	uORB::SubscriptionInterval _parameter_update_sub{ORB_ID(parameter_update), 1_s};
+	// 订阅 ESC 状态的 uORB 订阅对象，带有回调功能
 	uORB::SubscriptionCallbackWorkItem _esc_status_sub{this, ORB_ID(esc_status)};
 
-	static constexpr uint32_t ESC_BATTERY_INTERVAL_US = 20_ms; // assume higher frequency esc feedback than 50Hz
+	// ESC 电池状态更新的时间间隔，假设 ESC 反馈频率高于 50Hz
+	static constexpr uint32_t ESC_BATTERY_INTERVAL_US = 20_ms;
+	// 电池对象，用于管理和监控电池状态
 	Battery _battery;
 };
